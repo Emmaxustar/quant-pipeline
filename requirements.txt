@@ -6,4 +6,4 @@ statsmodels
 scikit-learn
 pyyaml
 pytest
-jupyter
+jupyterpip
