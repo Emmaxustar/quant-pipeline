@@ -39,6 +39,13 @@ pip install -r requirements.txt
 - Timing / alignment errors: misaligning signal timestamps and return windows
 - Overfitting / data snooping: repeatedly tuning on the same sample and expecting it to generalize
 
+## How I avoid future leak (timing assumption)
+- I compute signals using data available up to the close of day *t*.
+- I shift signals by 1 day (`signal.shift(1)`) so the position decided at *t* is traded on *t+1*.
+- I evaluate PnL using returns from *t+1* (no using same-bar prices to both decide and trade).
+- This repo assumes end-of-day signals and next-day execution (close-to-next-close baseline for now).
+- Any other assumption (next-open, VWAP, etc.) will be stated explicitly in configs and kept consistent.
+
 ## Milestones
 - Day2: minimal backtest (load data → signal → positions → equity curve)
 - Day3: add a cost model + basic metrics (Sharpe / max drawdown / turnover) + a simple report
