@@ -27,6 +27,10 @@ def main():
     print("Is monotonic increasing:", checks.is_monotonic_increasing)
     print("\nMissing rate by asset:")
     print(checks.missing_rate_by_asset)
+    print("Has extreme returns:", checks.has_extreme_returns)
+    if checks.has_extreme_returns:
+        print("\nTop extreme returns (abs):")
+        print(checks.extreme_returns_top)
 
 if __name__ == "__main__":
     main()

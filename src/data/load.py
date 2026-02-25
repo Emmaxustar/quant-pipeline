@@ -11,6 +11,8 @@ class DataChecksResult:
     missing_rate_by_asset: pd.Series
     has_duplicate_dates: bool
     is_monotonic_increasing: bool
+    has_extreme_returns: bool
+    extreme_returns_top: pd.Series
 
 
 def _validate_prices(prices: pd.DataFrame) -> DataChecksResult:
@@ -25,10 +27,30 @@ def _validate_prices(prices: pd.DataFrame) -> DataChecksResult:
 
     missing_rate_by_asset = prices.isna().mean().sort_values(ascending=False)
 
+    # --- extreme returns flag ---
+    rets = prices.pct_change()
+
+    # pick a threshold (50% is a common "something is wrong" flag for ETFs)
+    threshold = 0.5
+
+    # True/False mask where returns are extreme
+    extreme_mask = rets.abs() > threshold
+    has_extreme_returns = bool(extreme_mask.any().any())
+
+    # Show top 10 extreme moves (flatten date x asset into a Series)
+    extreme_top = (
+        rets.stack()
+        .loc[lambda s: s.abs() > threshold]
+        .abs()
+        .sort_values(ascending=False)
+        .head(10)
+    )
     return DataChecksResult(
         missing_rate_by_asset=missing_rate_by_asset,
         has_duplicate_dates=bool(has_duplicate_dates),
         is_monotonic_increasing=bool(is_monotonic_increasing),
+        has_extreme_returns=has_extreme_returns,
+        extreme_returns_top=extreme_top,
     )
 
 
@@ -76,13 +98,6 @@ def load_prices_yfinance(
     checks = _validate_prices(prices)
 
     return prices, checks
-
-    print("shape:", prices.shape)
-    print("columns:", list(prices.columns))
-    print("date range:", prices.index.min(), "->", prices.index.max())
-    print("head:\n", prices.head(3))
-    print("tail:\n", prices.tail(3))
-    print("any NA:", prices.isna().any().to_dict())
 
 
 def save_prices_csv(prices: pd.DataFrame, path: str) -> None:
