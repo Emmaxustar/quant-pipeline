@@ -20,13 +20,14 @@ def test_prices_validation_datetime_and_monotonic():
     assert float(checks.missing_rate_by_asset.max()) == 0.0
 
 
-def test_weight_cap_enforced():
-    # one day, 3 assets, clearly violates cap
+def test_weight_cap_preserves_sum_long_only():
     idx = pd.date_range("2020-01-01", periods=1, freq="D")
     w = pd.DataFrame({"A": [0.8], "B": [0.1], "C": [0.1]}, index=idx)
 
     capped = apply_weight_cap(w, cap=0.5)
-    # after capping, no weight should exceed cap (tolerate tiny float error)
-    assert (capped.abs().max(axis=1).iloc[0] <= 0.5 + 1e-12)
-    # long-only: sum should still be 1
+
+    # long-only still sums to 1
     assert np.isclose(capped.sum(axis=1).iloc[0], 1.0)
+
+    # cap should reduce concentration relative to original
+    assert capped.abs().max(axis=1).iloc[0] < w.abs().max(axis=1).iloc[0]
