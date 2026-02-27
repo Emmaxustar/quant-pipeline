@@ -1,0 +1,22 @@
+data:
+  source: yfinance
+  tickers: ["SPY", "QQQ", "IWM", "TLT", "GLD"]
+  start: "2018-01-01"
+
+signal:
+  name: momentum
+  k: 20
+
+portfolio:
+  top_k: 2
+  bottom_k: 0
+  cap: 0.60
+
+risk:
+  vol_target_annual: 0.10
+  vol_lookback: 20
+  max_leverage: 3.0
+
+costs:
+  fee_bps: 1.0
+  slippage_bps: 5.0
