@@ -45,3 +45,9 @@ pip install -r requirements.txt
 - PnL is evaluated using returns from *t+1* onward (no using the same-bar price to both compute the signal and execute the trade).
 - Baseline assumption: end-of-day signals with next-day execution (close-to-next-close for now).
 - Any alternative execution price (next open/VWAP, etc.) must be stated explicitly and used consistently.
+
+## Signal and portfolio design notes
+- Signals: momentum_k uses k-day cumulative return; reversal_k uses the negative of recent k-day return.
+- Timing: signals are shifted by 1 day to avoid look-ahead; positions decided at t are executed on t+1.
+- Portfolio: convert signals to weights via cross-sectional ranking (top-k long; optional bottom-k short), then normalize exposure.
+- Risk controls: apply single-name weight cap to limit concentration risk; apply volatility targeting to keep risk more stable across regimes (with leverage cap).
