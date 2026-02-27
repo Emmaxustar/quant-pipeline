@@ -52,6 +52,11 @@ pip install -r requirements.txt
 - Portfolio: convert signals to weights via cross-sectional ranking (top-k long; optional bottom-k short), then normalize exposure.
 - Risk controls: apply single-name weight cap to limit concentration risk; apply volatility targeting to keep risk more stable across regimes (with leverage cap).
 
+## Cost model (Day5)
+- Turnover: `0.5 * sum(|w_t - w_{t-1}|)` per day.
+- Daily cost (bps): `fee_bps/1e4 + (slippage_bps/1e4) * turnover`.
+- Net returns are computed as `gross - cost`.
+
 ## What this repo does
 
 ### Pipeline Outline
