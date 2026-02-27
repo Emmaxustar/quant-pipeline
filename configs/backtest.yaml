@@ -20,3 +20,6 @@ risk:
 costs:
   fee_bps: 1.0
   slippage_bps: 5.0
+
+run:
+  run_id: "demo_mom20_top2"

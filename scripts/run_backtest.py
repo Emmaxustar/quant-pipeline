@@ -64,8 +64,10 @@ def main():
     results["weights"] = w  # for report plots
 
     # ---------- output directory ----------
-    run_tag = datetime.now().strftime("run_%Y%m%d")
-    run_dir = Path("reports") / run_tag
+    run_cfg = cfg.get("run", {})
+    run_id = run_cfg.get("run_id", "run")
+    date_tag = datetime.now().strftime("%Y%m%d")
+    run_dir = Path("reports") / f"{run_id}_{date_tag}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
     # ---------- report ----------
