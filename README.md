@@ -51,3 +51,50 @@ pip install -r requirements.txt
 - Timing: signals are shifted by 1 day to avoid look-ahead; positions decided at t are executed on t+1.
 - Portfolio: convert signals to weights via cross-sectional ranking (top-k long; optional bottom-k short), then normalize exposure.
 - Risk controls: apply single-name weight cap to limit concentration risk; apply volatility targeting to keep risk more stable across regimes (with leverage cap).
+
+## What this repo does
+
+### Pipeline Outline
+```text
+DATA (Day2)
+┌──────────────────────────────────────────────────────────────┐
+│ Input: prices (date × asset)                                 │
+│ Checks: missing rate, duplicate dates, monotonic dates, etc. │
+└───────────────┬──────────────────────────────────────────────┘
+                │
+                ▼
+SIGNALS (Day3)
+┌──────────────────────────────────────────────────────────────┐
+│ raw_signal[t,i] = f(prices up to day t)                      │
+│   - momentum_k:  P[t]/P[t-k] - 1                             │
+│   - reversal_k: -(P[t]/P[t-k] - 1)                           │
+│                                                              │
+│ signal = raw_signal.shift(1)                                 │
+│ (avoid look-ahead: decide at t, execute at t+1)              │
+│ Output: signal (date × asset)                                │
+└───────────────┬──────────────────────────────────────────────┘
+                │
+                ▼
+PORTFOLIO / RISK (Day4)
+┌──────────────────────────────────────────────────────────────┐
+│ 1) Rank signals → select top-k (optional bottom-k)           │
+│ 2) Normalize weights                                         │
+│    - long-only: sum(w_t)=1                                   │
+│    - long-short: sum(long)=+1, sum(short)=-1                 │
+│ 3) Single-name cap (e.g., 10%)                               │
+│    - clip |w_t,i| <= cap and renormalize                     │
+│ 4) Vol targeting                                             │
+│    - r_p,t = Σ_i w_t,i r[t,i]                                │
+│    - σ_t = rolling_std(r_p, lookback)                        │
+│    - scale_t = σ* / σ_t (with leverage cap)                  │
+│    - w'_t = scale_t · w_t                                    │
+│ Output: weights (date × asset)                               │
+└───────────────┬──────────────────────────────────────────────┘
+                │
+                ▼
+BACKTEST OUTPUT
+┌──────────────────────────────────────────────────────────────┐
+│ portfolio_return[t] = Σ_i w'[t,i] r[t,i]                     │
+│ equity[t] = Π_{τ≤t} (1 + portfolio_return[τ])                │
+│ Outputs: equity curve + basic metrics                        │
+└──────────────────────────────────────────────────────────────┘
